@@ -2,7 +2,12 @@ const express = require("express");
 
 const songs = express.Router();
 
-const { getAllSongs } = require("../queries/songs");
+const { getAllSongs, getOneSong, createOneSong } = require("../queries/songs");
+
+const {
+  checkNameAndArtist,
+  checkBoolean,
+} = require("../validations/checkSongs.js");
 
 // INDEX
 songs.get("/", async (req, res) => {
@@ -11,6 +16,27 @@ songs.get("/", async (req, res) => {
     res.status(200).json(allSongs);
   } else {
     res.status(500).json({ error: "server error" });
+  }
+});
+
+// SHOW
+songs.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  const song = await getOneSong(id);
+  if (song) {
+    res.json(song);
+  } else {
+    res.status(404).json({ error: "not found" });
+  }
+});
+
+// CREATE
+songs.post("/", checkBoolean, checkNameAndArtist, async (req, res) => {
+  try {
+    const song = await createOneSong(req.body);
+    res.json(song);
+  } catch (error) {
+    res.status(400).json({ error: error });
   }
 });
 
